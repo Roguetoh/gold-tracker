@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GoldTrack · RM/g</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --gold:    #C9A84C;
+  --gold-bg: rgba(201,168,76,0.10);
+  --bg:      #0C0B08;
+  --bg2:     #141209;
+  --bg3:     #1C1A10;
+  --bg4:     #242118;
+  --border:  rgba(201,168,76,0.14);
+  --border2: rgba(201,168,76,0.26);
+  --text:    #EDE8D8;
+  --text2:   #9C9070;
+  --text3:   #5C5438;
+  --up:      #52B46B;
+  --up-bg:   rgba(82,180,107,0.10);
+  --dn:      #D95555;
+  --dn-bg:   rgba(217,85,85,0.10);
+  --r: 12px; --rs: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+/* ── Nav tabs ── */
+.tab-bar {
+  display: flex; align-items: stretch;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--bg2);
+  padding: 0 1rem;
+  flex-shrink: 0;
+}
+.tab-btn {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text3); background: none; border: none;
+  padding: 1rem .875rem; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text2); }
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ── App shell ── */
+.app-shell {
+  display: flex; flex-direction: column;
+  height: 100vh; overflow: hidden;
+}
+
+/* ── Pages ── */
+.page { display: none; flex: 1; overflow: hidden; }
+.page.active { display: flex; flex-direction: column; }
+
+/* Live page: fixed dashboard, no scroll */
+#page-live { overflow: hidden; }
+#page-live .wrap {
+  flex: 1;
+  display: flex; flex-direction: column;
+  max-width: 520px; margin: 0 auto;
+  padding: 0 1rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* History page: scrollable */
+#page-history { overflow-y: auto; }
+#page-history .hist-wrap { padding-bottom: 3rem; }
+
+/* ── Common wrap ── */
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 1rem; }
+
+/* ── Header ── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand-icon {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Serif Display', serif; font-size: 13px; color: var(--gold);
+}
+.brand-name { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--text); }
+.brand-name em { color: var(--gold); font-style: normal; }
+.pill {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2);
+  background: var(--bg3); border: 0.5px solid var(--border);
+  padding: 4px 10px; border-radius: 20px; letter-spacing: .04em;
+}
+.btn-refresh-pill {
+  background: none; border: none; color: var(--text3);
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  cursor: pointer; padding: 0; line-height: 1;
+  transition: color .15s;
+  border-left: 0.5px solid var(--border);
+  padding-left: 6px; margin-left: 2px;
+}
+.btn-refresh-pill:hover { color: var(--gold); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--up); flex-shrink: 0; }
+.dot.spin { background: var(--gold); animation: blink .7s infinite; }
+.dot.err  { background: var(--dn); animation: none; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(145deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 0.5px solid var(--border2); border-radius: 16px;
+  padding: 1.25rem 1.5rem 1rem; margin-bottom: .75rem;
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+.hero::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-lbl { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .12em; color: var(--text3); text-transform: uppercase; margin-bottom: .4rem; }
+.hero-price { display: flex; align-items: baseline; gap: 6px; margin-bottom: .5rem; }
+.hero-rm { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--gold); align-self: flex-start; margin-top: 6px; }
+.hero-num { font-family: 'DM Serif Display', serif; font-size: 48px; line-height: 1; color: var(--text); letter-spacing: -2px; }
+.hero-unit { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text3); }
+.hero-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 3px; font-family: 'DM Mono', monospace; font-size: 11px; padding: 3px 9px; border-radius: 20px; }
+.chip.up { background: var(--up-bg); color: var(--up); }
+.chip.dn { background: var(--dn-bg); color: var(--dn); }
+.chip.neu { background: var(--bg4); color: var(--text2); }
+.hero-time { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+
+/* ── Live mini chart ── */
+.chart-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: .75rem 1rem; margin-bottom: .875rem; flex-shrink: 0; }
+.chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
+.chart-ttl { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--text3); text-transform: uppercase; }
+.chart-cnt { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+
+/* ── Section dividers ── */
+.sec { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .14em; color: var(--text3); text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin-bottom: .6rem; flex-shrink: 0; }
+.sec::after { content:''; flex:1; height:.5px; background: var(--border); }
+
+/* ── Notif strip ── */
+.notif-strip { display: flex; align-items: center; justify-content: space-between; background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--rs); padding: .6rem 1rem; margin-bottom: .875rem; gap: 8px; flex-shrink: 0; }
+.notif-txt { font-size: 12px; color: var(--text2); flex: 1; }
+.btn-outline { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--border2); background: transparent; color: var(--gold); cursor: pointer; white-space: nowrap; transition: background .15s; }
+.btn-outline:hover { background: var(--gold-bg); }
+.btn-outline:disabled { color: var(--text3); border-color: var(--border); cursor: default; }
+.btn-outline:disabled:hover { background: transparent; }
+
+/* ── Alert form ── */
+.form-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: .875rem 1rem; margin-bottom: .875rem; flex-shrink: 0; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; color: var(--text3); text-transform: uppercase; }
+.fg input, .fg select { background: var(--bg4); border: 0.5px solid var(--border2); border-radius: var(--rs); padding: 7px 11px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color .15s; -webkit-appearance: none; }
+.fg input::placeholder { color: var(--text3); }
+.fg input:focus, .fg select:focus { border-color: var(--gold); }
+.fg select option { background: var(--bg4); }
+.btn-add { width: 100%; padding: 8px; background: var(--gold); border: none; border-radius: var(--rs); font-size: 13px; font-weight: 500; color: var(--bg); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity .15s; }
+.btn-add:hover { opacity: .85; }
+
+/* ── Alert list — grows to fill remaining space, scrolls internally ── */
+.alerts-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.alerts { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; padding-bottom: .5rem; }
+.a-item { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: .875rem 1rem; display: flex; align-items: center; gap: 10px; transition: border-color .3s, background .3s; }
+.a-item.hit { border-color: rgba(82,180,107,.5); background: rgba(82,180,107,.04); }
+.a-ico { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; font-family: 'DM Mono', monospace; border: 0.5px solid var(--border); background: var(--bg3); color: var(--text2); }
+.a-ico.above { border-color: rgba(217,85,85,.3); background: var(--dn-bg); color: var(--dn); }
+.a-ico.below { border-color: rgba(82,180,107,.3); background: var(--up-bg); color: var(--up); }
+.a-ico.done  { border-color: rgba(82,180,107,.5); background: var(--up-bg); color: var(--up); }
+.a-info { flex:1; min-width:0; }
+.a-name { font-size:13px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.a-item.hit .a-name { color: var(--up); }
+.a-detail { font-family:'DM Mono',monospace; font-size:11px; color:var(--text3); margin-top:2px; }
+.a-item.hit .a-detail { color: rgba(82,180,107,.7); }
+.del-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 17px; line-height:1; padding: 3px 5px; transition: color .15s; flex-shrink:0; }
+.del-btn:hover { color: var(--dn); }
+.empty { text-align:center; padding: 2rem; color: var(--text3); font-family:'DM Mono',monospace; font-size: 12px; border: 0.5px dashed var(--border); border-radius: var(--r); }
+
+/* ── Footer ── */
+footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.foot-note { font-family:'DM Mono',monospace; font-size:10px; color:var(--text3); }
+.btn-refresh { font-family:'DM Mono',monospace; font-size:10px; background: none; border: 0.5px solid var(--border); color: var(--text2); padding: 4px 12px; border-radius: 20px; cursor: pointer; transition: border-color .15s, color .15s; }
+.btn-refresh:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg3); border: 0.5px solid var(--gold); border-radius: var(--r); padding: .875rem 1.25rem; max-width: 340px; width: calc(100% - 2rem); text-align: center; z-index: 99; box-shadow: 0 8px 40px rgba(0,0,0,.6); transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.alert-toast { border-color: var(--up); animation: pulse-border 1s ease-in-out 3; }
+@keyframes pulse-border { 0%,100%{border-color:var(--up)} 50%{border-color:var(--gold)} }
+.toast-ttl { font-weight:500; font-size:13px; color:var(--gold); margin-bottom:3px; }
+.toast.alert-toast .toast-ttl { color: var(--up); }
+.toast-msg { font-family:'DM Mono',monospace; font-size:11px; color:var(--text2); }
+
+/* ── History page ── */
+.hist-wrap { max-width: 760px; margin: 0 auto; padding: 0 1rem 5rem; }
+.hist-header { padding: 1.5rem 0 1.25rem; border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.hist-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
+.hist-title span { color: var(--gold); }
+
+/* Range selector */
+.range-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.range-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all .15s; }
+.range-btn:hover { border-color: var(--border2); color: var(--text); }
+.range-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
+
+/* Big chart card */
+.big-chart-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1.25rem; margin-bottom: 1.5rem; }
+.big-chart-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+.big-chart-meta { }
+.big-chart-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--text3); text-transform: uppercase; margin-bottom: 4px; }
+.big-chart-range { font-size: 13px; color: var(--text2); }
+.big-chart-stat { text-align: right; }
+.bcs-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+.bcs-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
+
+/* Stats row */
+.stats-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1.5rem; }
+.stat-box { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--rs); padding: .75rem; }
+.stat-box-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.stat-box-val { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text); }
+.stat-box-val.up { color: var(--up); }
+.stat-box-val.dn { color: var(--dn); }
+
+/* Loading state */
+.loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 1rem; gap: 12px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 12px; }
+.spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Intraday tab selector */
+.intra-tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+<!-- Tab bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('live')">Live</button>
+  <button class="tab-btn" onclick="switchTab('history')">History</button>
+</div>
+
+<!-- ════════════════ LIVE PAGE ════════════════ -->
+<div id="page-live" class="page active">
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="brand-icon">Au</div>
+      <div class="brand-name">Gold<em>Track</em></div>
+    </div>
+    <div class="pill">
+      <div class="dot spin" id="dot"></div>
+      <span id="status-lbl">LOADING</span>
+      <button class="btn-refresh-pill" onclick="fetchGold()" title="Refresh now">↻</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-lbl">Gold spot price · 24K</div>
+    <div class="hero-price">
+      <div class="hero-rm">RM</div>
+      <div class="hero-num" id="price-num">—</div>
+      <div class="hero-unit">/ g</div>
+    </div>
+    <div class="hero-meta">
+      <div class="chip neu" id="change-chip">—</div>
+      <div class="hero-time" id="upd-time">Not yet fetched</div>
+      <div class="hero-time" id="countdown" style="opacity:.5"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-hdr">
+      <div class="chart-ttl">Session history · RM/g</div>
+      <div class="chart-cnt" id="chart-cnt">0 / 20 readings</div>
+    </div>
+    <canvas id="spark" style="width:100%;height:72px"></canvas>
+  </div>
+
+  <div class="sec">Notifications</div>
+  <div class="notif-strip">
+    <div class="notif-txt" id="notif-txt">Enable browser notifications to receive price alerts</div>
+    <button class="btn-outline" id="notif-btn" onclick="askNotif()">Enable</button>
+  </div>
+
+  <div class="sec">Set Alert</div>
+  <div class="form-card">
+    <div class="row2">
+      <div class="fg">
+        <label>Alert name</label>
+        <input type="text" id="a-name" placeholder="e.g. Buy signal" />
+      </div>
+      <div class="fg">
+        <label>Target (RM / g)</label>
+        <input type="number" id="a-price" placeholder="e.g. 420.00" step="0.01" min="0" />
+      </div>
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label>Condition</label>
+        <select id="a-cond">
+          <option value="above">Price goes above ↑</option>
+          <option value="below">Price goes below ↓</option>
+        </select>
+      </div>
+      <div class="fg" style="justify-content:flex-end">
+        <button class="btn-add" onclick="addAlert()">+ Add alert</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">Active Alerts</div>
+  <div class="alerts-section">
+    <div class="alerts" id="alerts-list">
+      <div class="empty">No alerts yet · add one above</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ HISTORY PAGE ════════════════ -->
+<div id="page-history" class="page">
+<div class="hist-wrap">
+  <div class="hist-header">
+    <div class="hist-title">Price <span>History</span></div>
+    <div class="pill">
+      <div class="dot" id="hist-dot" style="background:var(--text3)"></div>
+      <span id="hist-status">Ready</span>
+      <button class="btn-refresh-pill" onclick="reloadHistory()" title="Reload">↻</button>
+    </div>
+  </div>
+
+  <!-- 24hr intraday section -->
+  <div class="sec">Last 24 hours · 30-min intervals</div>
+  <div class="big-chart-card">
+    <div class="big-chart-hdr">
+      <div class="big-chart-meta">
+        <div class="big-chart-label">Intraday · RM / g</div>
+        <div class="big-chart-range" id="intra-range">—</div>
+      </div>
+      <div class="big-chart-stat">
+        <div class="bcs-label">24h change</div>
+        <div class="bcs-val" id="intra-change">—</div>
+      </div>
+    </div>
+    <div id="intra-loading" class="loading-state"><div class="spinner"></div>Loading intraday data…</div>
+    <canvas id="intra-chart" style="width:100%;height:180px;display:none"></canvas>
+  </div>
+
+  <!-- Daily historical section -->
+  <div class="sec">Historical · Daily close</div>
+
+  <div class="range-row">
+    <button class="range-btn active" onclick="loadDaily(90, this)">3 months</button>
+    <button class="range-btn" onclick="loadDaily(180, this)">6 months</button>
+    <button class="range-btn" onclick="loadDaily(365, this)">1 year</button>
+    <button class="range-btn" onclick="loadDaily(730, this)">2 years</button>
+    <button class="range-btn" onclick="loadDaily(1825, this)">5 years</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-box-lbl">High</div><div class="stat-box-val up" id="d-high">—</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">Low</div><div class="stat-box-val dn" id="d-low">—</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">Change</div><div class="stat-box-val" id="d-chg">—</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">Avg</div><div class="stat-box-val" id="d-avg">—</div></div>
+  </div>
+
+  <div class="big-chart-card">
+    <div class="big-chart-hdr">
+      <div class="big-chart-meta">
+        <div class="big-chart-label">Daily close · RM / g</div>
+        <div class="big-chart-range" id="daily-range">—</div>
+      </div>
+    </div>
+    <div id="daily-loading" class="loading-state"><div class="spinner"></div>Loading historical data…</div>
+    <canvas id="daily-chart" style="width:100%;height:220px;display:none"></canvas>
+  </div>
+
+</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-ttl" id="t-ttl"></div>
+  <div class="toast-msg" id="t-msg"></div>
+</div>
+</div><!-- end app-shell -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════
+   SHARED STATE
+══════════════════════════════════════════════ */
+const TROY = 31.1035;
+let price24k = null, prevPrice = null;
+let fxRate   = 4.42;
+let history  = [];
+let alerts   = loadAlerts();
+let liveChart   = null;
+let intraChart  = null;
+let dailyChart  = null;
+let notifOk  = Notification.permission === 'granted';
+let histLoaded = false;
+
+function loadAlerts() {
+  try { return JSON.parse(localStorage.getItem('gt_alerts') || '[]'); } catch(_) { return []; }
+}
+function saveAlerts() {
+  try { localStorage.setItem('gt_alerts', JSON.stringify(alerts)); } catch(_) {}
+}
+
+/* ══════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'history' && !histLoaded) {
+    histLoaded = true;
+    loadIntraday();
+    loadDaily(90, document.querySelector('.range-btn.active'));
+  }
+}
+
+/* ══════════════════════════════════════════════
+   LIVE — FX + GOLD
+══════════════════════════════════════════════ */
+async function fetchFX() {
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const d = await r.json();
+    if (d?.rates?.MYR) fxRate = d.rates.MYR;
+  } catch(_) {}
+}
+
+async function fetchGold() {
+  setStatus('spin', 'LOADING');
+  try {
+    const r = await fetch('https://api.gold-api.com/price/XAU');
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    const myrG = (d.price * fxRate) / TROY;
+    applyPrice(myrG);
+    setStatus('', 'LIVE');
+  } catch(_) {
+    setStatus('err', 'ERROR');
+    document.getElementById('price-num').textContent = 'N/A';
+  }
+}
+
+function applyPrice(myrG) {
+  prevPrice = price24k;
+  price24k  = myrG;
+  document.getElementById('price-num').textContent = myrG.toFixed(2);
+  const chip = document.getElementById('change-chip');
+  if (prevPrice !== null) {
+    const diff = myrG - prevPrice;
+    const pct  = (diff / prevPrice) * 100;
+    const sign = diff >= 0 ? '+' : '';
+    chip.textContent = `${sign}${diff.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
+    chip.className   = 'chip ' + (diff > 0 ? 'up' : diff < 0 ? 'dn' : 'neu');
+  } else {
+    chip.textContent = 'First reading'; chip.className = 'chip neu';
+  }
+  document.getElementById('upd-time').textContent =
+    'Updated ' + new Date().toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  startCountdown();
+  history.push({ t: new Date(), v: parseFloat(myrG.toFixed(2)) });
+  if (history.length > 20) history.shift();
+  renderLiveChart();
+  checkAlerts();
+}
+
+function renderLiveChart() {
+  const labels = history.map(h => h.t.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' }));
+  const vals   = history.map(h => h.v);
+  document.getElementById('chart-cnt').textContent = `${history.length} / 20 readings`;
+  if (!liveChart) {
+    const ctx = document.getElementById('spark').getContext('2d');
+    liveChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{ data: vals, borderColor: '#C9A84C', borderWidth: 1.5, pointRadius: 2, pointBackgroundColor: '#C9A84C', tension: 0.4, fill: true, backgroundColor: c => { const g = c.chart.ctx.createLinearGradient(0,0,0,72); g.addColorStop(0,'rgba(201,168,76,.15)'); g.addColorStop(1,'rgba(201,168,76,0)'); return g; } }] },
+      options: { responsive: false, animation: { duration: 350 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1C1A10', borderColor: 'rgba(201,168,76,.3)', borderWidth: .5, titleColor: '#9C9070', bodyColor: '#EDE8D8', bodyFont: { family: 'DM Mono', size: 12 }, titleFont: { family: 'DM Mono', size: 10 }, callbacks: { label: c => 'RM ' + c.parsed.y.toFixed(2) + ' / g' } } }, scales: { x: { display: false }, y: { display: true, grid: { color: 'rgba(201,168,76,.06)', drawBorder: false }, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#5C5438', callback: v => 'RM ' + v.toFixed(0), maxTicksLimit: 4 }, border: { display: false } } } }
+    });
+  } else {
+    liveChart.data.labels = labels;
+    liveChart.data.datasets[0].data = vals;
+    liveChart.update('none');
+  }
+}
+
+/* ══════════════════════════════════════════════
+   CORS PROXY HELPER — tries multiple proxies
+══════════════════════════════════════════════ */
+async function fetchViaProxy(targetUrl) {
+  const proxies = [
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  ];
+  for (const makeProxy of proxies) {
+    try {
+      const r = await fetch(makeProxy(targetUrl), { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) continue;
+      const text = await r.text();
+      // codetabs returns raw JSON; corsproxy returns raw; thingproxy returns raw
+      return JSON.parse(text);
+    } catch(_) { continue; }
+  }
+  throw new Error('All proxies failed');
+}
+
+/* ══════════════════════════════════════════════
+   HISTORY — INTRADAY (30-min via Yahoo Finance GC=F)
+══════════════════════════════════════════════ */
+async function loadIntraday() {
+  document.getElementById('intra-loading').style.display = 'flex';
+  document.getElementById('intra-chart').style.display   = 'none';
+  setHistStatus('spin', 'Loading…');
+  try {
+    const url = 'https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?range=1d&interval=30m';
+    const d   = await fetchViaProxy(url);
+    const result = d.chart.result[0];
+    const timestamps = result.timestamp;
+    const closes     = result.indicators.quote[0].close;
+    const pts = timestamps.map((ts, i) => ({
+      t: new Date(ts * 1000),
+      v: closes[i] != null ? parseFloat(((closes[i] * fxRate) / TROY).toFixed(2)) : null
+    })).filter(p => p.v !== null);
+    if (!pts.length) throw 0;
+    renderIntraChart(pts);
+  } catch(_) {
+    document.getElementById('intra-loading').innerHTML =
+      '<div style="color:var(--text3);font-family:DM Mono,monospace;font-size:12px;text-align:center;padding:2rem">Could not load intraday data.<br>Markets may be closed or check your internet connection.</div>';
+    setHistStatus('err', 'Error');
+  }
+}
+
+function renderIntraChart(pts) {
+  document.getElementById('intra-loading').style.display = 'none';
+  const canvas = document.getElementById('intra-chart');
+  canvas.style.display = 'block';
+  canvas.width = canvas.parentElement.clientWidth - 40;
+  canvas.height = 180;
+
+  const labels = pts.map(p => p.t.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' }));
+  const vals   = pts.map(p => p.v);
+
+  // Range label
+  if (pts.length > 1) {
+    const first = pts[0].t, last = pts[pts.length-1].t;
+    document.getElementById('intra-range').textContent =
+      first.toLocaleDateString('en-MY', { day:'numeric', month:'short' }) + ' ' +
+      first.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' }) + ' → ' +
+      last.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' });
+    const chg = vals[vals.length-1] - vals[0];
+    const pct = (chg / vals[0]) * 100;
+    const sign = chg >= 0 ? '+' : '';
+    const el = document.getElementById('intra-change');
+    el.textContent = `${sign}${chg.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
+    el.className = 'bcs-val ' + (chg >= 0 ? 'up' : 'dn');
+  }
+
+  const up = vals[vals.length-1] >= vals[0];
+  const lineColor = up ? '#52B46B' : '#D95555';
+  const fillStart = up ? 'rgba(82,180,107,.15)' : 'rgba(217,85,85,.12)';
+
+  if (!intraChart) {
+    const ctx = canvas.getContext('2d');
+    intraChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{ data: vals, borderColor: lineColor, borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: lineColor, tension: 0.3, fill: true, backgroundColor: c => { const g = c.chart.ctx.createLinearGradient(0,0,0,180); g.addColorStop(0, fillStart); g.addColorStop(1,'rgba(0,0,0,0)'); return g; } }] },
+      options: { responsive: false, interaction: { mode: 'index', intersect: false }, animation: { duration: 500 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1C1A10', borderColor: 'rgba(201,168,76,.3)', borderWidth: .5, titleColor: '#9C9070', bodyColor: '#EDE8D8', bodyFont: { family: 'DM Mono', size: 12 }, titleFont: { family: 'DM Mono', size: 10 }, callbacks: { label: c => 'RM ' + c.parsed.y.toFixed(2) + ' / g' } } }, scales: { x: { display: true, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#5C5438', maxTicksLimit: 8, maxRotation: 0 }, grid: { display: false }, border: { display: false } }, y: { display: true, position: 'right', grid: { color: 'rgba(201,168,76,.05)', drawBorder: false }, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#5C5438', callback: v => 'RM ' + v.toFixed(0), maxTicksLimit: 5 }, border: { display: false } } } }
+    });
+  } else {
+    intraChart.data.labels = labels;
+    intraChart.data.datasets[0].data = vals;
+    intraChart.data.datasets[0].borderColor = lineColor;
+    intraChart.update();
+  }
+  setHistStatus('', 'Loaded');
+}
+
+/* ══════════════════════════════════════════════
+   HISTORY — DAILY (via Yahoo Finance proxy)
+══════════════════════════════════════════════ */
+let currentDays = 90;
+
+async function loadDaily(days, btn) {
+  currentDays = days;
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('daily-loading').style.display = 'flex';
+  document.getElementById('daily-chart').style.display   = 'none';
+  setHistStatus('spin', 'Loading…');
+
+  const now    = Math.floor(Date.now() / 1000);
+  const period1 = now - days * 86400;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?period1=${period1}&period2=${now}&interval=1d&events=history`;
+
+  try {
+    const d      = await fetchViaProxy(url);
+    const result = d.chart.result[0];
+    const timestamps = result.timestamp;
+    const closes     = result.indicators.quote[0].close;
+
+    const pts = timestamps.map((ts, i) => ({
+      t: new Date(ts * 1000),
+      v: closes[i] != null ? parseFloat(((closes[i] * fxRate) / TROY).toFixed(2)) : null
+    })).filter(p => p.v !== null);
+
+    renderDailyChart(pts, days);
+  } catch(_) {
+    document.getElementById('daily-loading').innerHTML =
+      '<div style="color:var(--text3);font-family:DM Mono,monospace;font-size:12px;text-align:center;padding:2rem">Could not load historical data.<br>Check internet connection and try again.</div>';
+    setHistStatus('err', 'Error');
+  }
+}
+
+function renderDailyChart(pts, days) {
+  document.getElementById('daily-loading').style.display = 'none';
+  const canvas = document.getElementById('daily-chart');
+  canvas.style.display = 'block';
+  canvas.width  = canvas.parentElement.clientWidth - 40;
+  canvas.height = 220;
+
+  const labels = pts.map(p => p.t.toLocaleDateString('en-MY', { day:'numeric', month:'short', year: days > 365 ? '2-digit' : undefined }));
+  const vals   = pts.map(p => p.v);
+
+  // Stats
+  const high = Math.max(...vals), low = Math.min(...vals), avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+  const chg  = vals[vals.length-1] - vals[0];
+  const pct  = (chg / vals[0]) * 100;
+  const sign = chg >= 0 ? '+' : '';
+  document.getElementById('d-high').textContent = 'RM ' + high.toFixed(2);
+  document.getElementById('d-low').textContent  = 'RM ' + low.toFixed(2);
+  document.getElementById('d-avg').textContent  = 'RM ' + avg.toFixed(2);
+  const chgEl = document.getElementById('d-chg');
+  chgEl.textContent = `${sign}${pct.toFixed(1)}%`;
+  chgEl.className   = 'stat-box-val ' + (chg >= 0 ? 'up' : 'dn');
+
+  // Range label
+  if (pts.length > 1) {
+    document.getElementById('daily-range').textContent =
+      pts[0].t.toLocaleDateString('en-MY', { day:'numeric', month:'short', year:'numeric' }) + ' → ' +
+      pts[pts.length-1].t.toLocaleDateString('en-MY', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  const up = chg >= 0;
+  const lineColor  = up ? '#52B46B' : '#D95555';
+  const fillStart  = up ? 'rgba(82,180,107,.12)' : 'rgba(217,85,85,.10)';
+
+  // Reduce label density for long ranges
+  const maxTicks = days <= 90 ? 8 : days <= 365 ? 10 : 12;
+
+  if (!dailyChart) {
+    const ctx = canvas.getContext('2d');
+    dailyChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{ data: vals, borderColor: lineColor, borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: lineColor, tension: 0.2, fill: true, backgroundColor: c => { const g = c.chart.ctx.createLinearGradient(0,0,0,220); g.addColorStop(0, fillStart); g.addColorStop(1,'rgba(0,0,0,0)'); return g; } }] },
+      options: { responsive: false, interaction: { mode: 'index', intersect: false }, animation: { duration: 600 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1C1A10', borderColor: 'rgba(201,168,76,.3)', borderWidth: .5, titleColor: '#9C9070', bodyColor: '#EDE8D8', bodyFont: { family: 'DM Mono', size: 12 }, titleFont: { family: 'DM Mono', size: 10 }, callbacks: { label: c => 'RM ' + c.parsed.y.toFixed(2) + ' / g' } } }, scales: { x: { display: true, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#5C5438', maxTicksLimit: maxTicks, maxRotation: 0 }, grid: { display: false }, border: { display: false } }, y: { display: true, position: 'right', grid: { color: 'rgba(201,168,76,.05)', drawBorder: false }, ticks: { font: { family: 'DM Mono', size: 9 }, color: '#5C5438', callback: v => 'RM ' + v.toFixed(0), maxTicksLimit: 6 }, border: { display: false } } } }
+    });
+  } else {
+    dailyChart.data.labels = labels;
+    dailyChart.data.datasets[0].data = vals;
+    dailyChart.data.datasets[0].borderColor = lineColor;
+    dailyChart.options.scales.x.ticks.maxTicksLimit = maxTicks;
+    dailyChart.update();
+  }
+  setHistStatus('', 'Loaded');
+}
+
+function reloadHistory() {
+  if (intraChart) { intraChart.destroy(); intraChart = null; }
+  if (dailyChart) { dailyChart.destroy(); dailyChart = null; }
+  document.getElementById('intra-loading').style.display = 'flex';
+  document.getElementById('intra-chart').style.display   = 'none';
+  loadIntraday();
+  loadDaily(currentDays, document.querySelector('.range-btn.active'));
+}
+
+/* ══════════════════════════════════════════════
+   ALERTS
+══════════════════════════════════════════════ */
+function addAlert() {
+  const name  = document.getElementById('a-name').value.trim() || 'My Alert';
+  const price = parseFloat(document.getElementById('a-price').value);
+  const cond  = document.getElementById('a-cond').value;
+  const inp   = document.getElementById('a-price');
+  if (!price || isNaN(price) || price <= 0) {
+    inp.style.borderColor = 'var(--dn)';
+    setTimeout(() => inp.style.borderColor = '', 1500);
+    return;
+  }
+  inp.style.borderColor = '';
+  alerts.push({ id: Date.now(), name, price, cond, hit: false });
+  document.getElementById('a-name').value  = '';
+  document.getElementById('a-price').value = '';
+  saveAlerts(); renderAlerts(); checkAlerts();
+  toast('Alert set', `Watching for RM ${price.toFixed(2)} / g`);
+}
+
+function removeAlert(id) {
+  alerts = alerts.filter(a => a.id !== id);
+  saveAlerts(); renderAlerts();
+}
+
+function renderAlerts() {
+  const el = document.getElementById('alerts-list');
+  if (!alerts.length) { el.innerHTML = '<div class="empty">No alerts yet · add one above</div>'; return; }
+  el.innerHTML = alerts.map(a => {
+    const cls  = a.hit ? 'done' : a.cond;
+    const icon = a.hit ? '✓' : (a.cond === 'above' ? '↑' : '↓');
+    return `<div class="a-item${a.hit ? ' hit' : ''}">
+      <div class="a-ico ${cls}">${icon}</div>
+      <div class="a-info">
+        <div class="a-name">${esc(a.name)}</div>
+        <div class="a-detail">${a.cond === 'above' ? 'Above' : 'Below'} RM ${a.price.toFixed(2)} / g${a.hit ? ' · Triggered ✓' : ''}</div>
+      </div>
+      <button class="del-btn" onclick="removeAlert(${a.id})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function checkAlerts() {
+  if (price24k === null) return;
+  let any = false;
+  alerts.forEach(a => {
+    if (a.hit) return;
+    const fired = (a.cond === 'above' && price24k >= a.price) || (a.cond === 'below' && price24k <= a.price);
+    if (fired) {
+      a.hit = true; any = true;
+      const msg = `Gold is now RM ${price24k.toFixed(2)}/g — your target of RM ${a.price.toFixed(2)}/g was reached.`;
+      playAlertSound();
+      toast('🔔 ' + a.name, msg, true);
+      if (notifOk) new Notification('GoldTrack · ' + a.name, { body: msg });
+    }
+  });
+  if (any) { saveAlerts(); renderAlerts(); }
+}
+
+/* ══════════════════════════════════════════════
+   NOTIFICATIONS + SOUND
+══════════════════════════════════════════════ */
+function askNotif() {
+  Notification.requestPermission().then(p => { notifOk = p === 'granted'; updateNotifUI(); });
+}
+function updateNotifUI() {
+  const p = Notification.permission;
+  const btn = document.getElementById('notif-btn');
+  const txt = document.getElementById('notif-txt');
+  if (p === 'granted') { btn.textContent = 'Enabled ✓'; btn.disabled = true; txt.textContent = "Browser notifications are on — you'll be alerted when targets are hit"; }
+  else if (p === 'denied') { btn.textContent = 'Blocked'; btn.disabled = true; txt.textContent = 'Notifications blocked — allow in your browser settings'; }
+}
+
+function playAlertSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.25, 0.5].forEach(t => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime + t);
+      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + t + 0.15);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + t);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.2);
+      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.2);
+    });
+  } catch(_) {}
+}
+
+/* ══════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════ */
+function setStatus(dotCls, lbl) {
+  document.getElementById('dot').className = 'dot ' + dotCls;
+  document.getElementById('status-lbl').textContent = lbl;
+}
+function setHistStatus(dotCls, lbl) {
+  document.getElementById('hist-dot').className = 'dot ' + dotCls;
+  document.getElementById('hist-status').textContent = lbl;
+  if (!dotCls) document.getElementById('hist-dot').style.background = 'var(--up)';
+  else document.getElementById('hist-dot').style.background = '';
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+let toastT;
+function toast(ttl, msg, isAlert = false) {
+  document.getElementById('t-ttl').textContent = ttl;
+  document.getElementById('t-msg').textContent = msg;
+  const el = document.getElementById('toast');
+  el.classList.add('show');
+  if (isAlert) el.classList.add('alert-toast'); else el.classList.remove('alert-toast');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { el.classList.remove('show'); el.classList.remove('alert-toast'); }, 6000);
+}
+
+async function fetchAll() { await fetchFX(); await fetchGold(); }
+
+/* ── Countdown timer ── */
+let countdownVal = 30;
+let countdownInterval = null;
+
+function startCountdown() {
+  countdownVal = 30;
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    countdownVal--;
+    const el = document.getElementById('countdown');
+    if (el) el.textContent = countdownVal > 0 ? `· refresh in ${countdownVal}s` : '· refreshing…';
+  }, 1000);
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const c = document.getElementById('spark');
+  c.width = c.parentElement.clientWidth - 32;
+  c.height = 72;
+});
+
+updateNotifUI();
+renderAlerts();
+fetchAll();
+startCountdown();
+setInterval(fetchGold, 30000);  // every 20s
+setInterval(fetchFX, 300000);
+</script>
+</body>
+</html>
