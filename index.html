@@ -23,6 +23,8 @@
   --up-bg:   rgba(82,180,107,0.10);
   --dn:      #D95555;
   --dn-bg:   rgba(217,85,85,0.10);
+  --closed:  #8B7355;
+  --closed-bg: rgba(139,115,85,0.10);
   --r: 12px; --rs: 8px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,7 +60,6 @@ html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif;
 .page { display: none; flex: 1; overflow: hidden; }
 .page.active { display: flex; flex-direction: column; }
 
-/* Live page: fixed dashboard, no scroll */
 #page-live { overflow: hidden; }
 #page-live .wrap {
   flex: 1;
@@ -69,11 +70,9 @@ html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif;
   width: 100%;
 }
 
-/* History page: scrollable */
 #page-history { overflow-y: auto; }
 #page-history .hist-wrap { padding-bottom: 3rem; }
 
-/* ── Common wrap ── */
 .wrap { max-width: 520px; margin: 0 auto; padding: 0 1rem; }
 
 /* ── Header ── */
@@ -111,6 +110,7 @@ header {
 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--up); flex-shrink: 0; }
 .dot.spin { background: var(--gold); animation: blink .7s infinite; }
 .dot.err  { background: var(--dn); animation: none; }
+.dot.closed { background: var(--closed); animation: none; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
 
 /* ── Hero ── */
@@ -119,6 +119,10 @@ header {
   border: 0.5px solid var(--border2); border-radius: 16px;
   padding: 1.25rem 1.5rem 1rem; margin-bottom: .75rem;
   position: relative; overflow: hidden; flex-shrink: 0;
+  transition: border-color .4s;
+}
+.hero.market-closed {
+  border-color: rgba(139,115,85,0.3);
 }
 .hero::before {
   content: ''; position: absolute; top: -40px; right: -40px;
@@ -126,19 +130,89 @@ header {
   background: radial-gradient(circle, rgba(201,168,76,.07) 0%, transparent 70%);
   pointer-events: none;
 }
+.hero.market-closed::before {
+  background: radial-gradient(circle, rgba(139,115,85,.05) 0%, transparent 70%);
+}
 .hero-lbl { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .12em; color: var(--text3); text-transform: uppercase; margin-bottom: .4rem; }
 .hero-price { display: flex; align-items: baseline; gap: 6px; margin-bottom: .5rem; }
 .hero-rm { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--gold); align-self: flex-start; margin-top: 6px; }
+.hero-rm.dimmed { color: var(--closed); }
 .hero-num { font-family: 'DM Serif Display', serif; font-size: 48px; line-height: 1; color: var(--text); letter-spacing: -2px; }
+.hero-num.dimmed { color: var(--text2); }
 .hero-unit { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text3); }
 .hero-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .chip { display: inline-flex; align-items: center; gap: 3px; font-family: 'DM Mono', monospace; font-size: 11px; padding: 3px 9px; border-radius: 20px; }
 .chip.up { background: var(--up-bg); color: var(--up); }
 .chip.dn { background: var(--dn-bg); color: var(--dn); }
 .chip.neu { background: var(--bg4); color: var(--text2); }
+.chip.closed-chip { background: var(--closed-bg); color: var(--closed); }
 .hero-time { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
 
-/* ── Live mini chart ── */
+/* ── Market Closed Banner ── */
+.closed-banner {
+  display: none;
+  background: linear-gradient(135deg, rgba(139,115,85,0.08) 0%, rgba(12,11,8,0) 100%);
+  border: 0.5px solid rgba(139,115,85,0.25);
+  border-radius: var(--rs);
+  padding: .75rem 1rem;
+  margin-bottom: .875rem;
+  flex-shrink: 0;
+}
+.closed-banner.visible { display: flex; align-items: center; gap: 12px; }
+.closed-icon {
+  font-size: 20px; flex-shrink: 0; opacity: .7;
+}
+.closed-info { flex: 1; }
+.closed-title {
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .08em;
+  color: #D4AF5A; text-transform: uppercase; margin-bottom: 3px;
+}
+.closed-sub {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: #9C9070;
+}
+.banner-right { text-align: right; flex-shrink: 0; }
+.opens-label {
+  font-family: 'DM Mono', monospace; font-size: 9px; color: #9C9070;
+  text-align: right; letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.opens-in {
+  font-family: 'DM Serif Display', serif; font-size: 22px; color: #EDE8D8;
+  text-align: right; line-height: 1.1; font-weight: 600; letter-spacing: -.5px;
+}
+.opens-datetime {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: #C9A84C;
+  text-align: right; margin-top: 4px; letter-spacing: .03em;
+}
+
+/* ── Market Open Banner ── */
+.open-banner {
+  display: none;
+  background: linear-gradient(135deg, rgba(82,180,107,0.06) 0%, rgba(12,11,8,0) 100%);
+  border: 0.5px solid rgba(82,180,107,0.2);
+  border-radius: var(--rs);
+  padding: .75rem 1rem;
+  margin-bottom: .875rem;
+  flex-shrink: 0;
+}
+.open-banner.visible { display: flex; align-items: center; gap: 12px; }
+.open-icon { font-size: 20px; flex-shrink: 0; opacity: .8; }
+.open-info { flex: 1; }
+.open-title {
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .08em;
+  color: var(--up); text-transform: uppercase; margin-bottom: 3px;
+}
+.open-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+.closes-in {
+  font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text);
+  text-align: right; line-height: 1.1;
+}
+.opens-at {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2);
+  text-align: right; margin-top: 4px;
+}
+
+/* ── Chart card ── */
 .chart-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: .75rem 1rem; margin-bottom: .875rem; flex-shrink: 0; }
 .chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
 .chart-ttl { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--text3); text-transform: uppercase; }
@@ -163,12 +237,14 @@ header {
 .fg label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; color: var(--text3); text-transform: uppercase; }
 .fg input, .fg select { background: var(--bg4); border: 0.5px solid var(--border2); border-radius: var(--rs); padding: 7px 11px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color .15s; -webkit-appearance: none; }
 .fg input::placeholder { color: var(--text3); }
+.fg input[type=number]::-webkit-inner-spin-button,
+.fg input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .fg input:focus, .fg select:focus { border-color: var(--gold); }
 .fg select option { background: var(--bg4); }
 .btn-add { width: 100%; padding: 8px; background: var(--gold); border: none; border-radius: var(--rs); font-size: 13px; font-weight: 500; color: var(--bg); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity .15s; }
 .btn-add:hover { opacity: .85; }
 
-/* ── Alert list — grows to fill remaining space, scrolls internally ── */
+/* ── Alert list ── */
 .alerts-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .alerts { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; padding-bottom: .5rem; }
 .a-item { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: .875rem 1rem; display: flex; align-items: center; gap: 10px; transition: border-color .3s, background .3s; }
@@ -186,12 +262,6 @@ header {
 .del-btn:hover { color: var(--dn); }
 .empty { text-align:center; padding: 2rem; color: var(--text3); font-family:'DM Mono',monospace; font-size: 12px; border: 0.5px dashed var(--border); border-radius: var(--r); }
 
-/* ── Footer ── */
-footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.foot-note { font-family:'DM Mono',monospace; font-size:10px; color:var(--text3); }
-.btn-refresh { font-family:'DM Mono',monospace; font-size:10px; background: none; border: 0.5px solid var(--border); color: var(--text2); padding: 4px 12px; border-radius: 20px; cursor: pointer; transition: border-color .15s, color .15s; }
-.btn-refresh:hover { border-color: var(--gold); color: var(--gold); }
-
 /* ── Toast ── */
 .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg3); border: 0.5px solid var(--gold); border-radius: var(--r); padding: .875rem 1.25rem; max-width: 340px; width: calc(100% - 2rem); text-align: center; z-index: 99; box-shadow: 0 8px 40px rgba(0,0,0,.6); transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
 .toast.show { transform: translateX(-50%) translateY(0); }
@@ -207,13 +277,11 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
 .hist-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
 .hist-title span { color: var(--gold); }
 
-/* Range selector */
 .range-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
 .range-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all .15s; }
 .range-btn:hover { border-color: var(--border2); color: var(--text); }
 .range-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
 
-/* Big chart card */
 .big-chart-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1.25rem; margin-bottom: 1.5rem; }
 .big-chart-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
 .big-chart-meta { }
@@ -223,7 +291,6 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
 .bcs-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
 .bcs-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
 
-/* Stats row */
 .stats-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1.5rem; }
 .stat-box { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--rs); padding: .75rem; }
 .stat-box-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
@@ -231,25 +298,20 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
 .stat-box-val.up { color: var(--up); }
 .stat-box-val.dn { color: var(--dn); }
 
-/* Loading state */
 .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 1rem; gap: 12px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 12px; }
 .spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* Intraday tab selector */
-.intra-tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; }
 </style>
 </head>
 <body>
 
 <div class="app-shell">
-<!-- Tab bar -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('live')">Live</button>
-  <button class="tab-btn" onclick="switchTab('history')">History</button>
+  <button class="tab-btn active" onclick="switchTab('live', event)">Live</button>
+  <button class="tab-btn" onclick="switchTab('history', event)">History</button>
 </div>
 
-<!-- ════════════════ LIVE PAGE ════════════════ -->
+<!-- ════════ LIVE PAGE ════════ -->
 <div id="page-live" class="page active">
 <div class="wrap">
   <header>
@@ -264,10 +326,37 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
     </div>
   </header>
 
-  <div class="hero">
+  <!-- Market Status Banner -->
+  <div class="closed-banner" id="closed-banner">
+    <div class="closed-icon">🔒</div>
+    <div class="closed-info">
+      <div class="closed-title">Market Closed</div>
+      <div class="closed-sub" id="closed-sub">COMEX Gold futures are not trading</div>
+    </div>
+    <div class="banner-right">
+      <div class="opens-label">Opens in</div>
+      <div class="opens-in" id="opens-in-time">—</div>
+      <div class="opens-datetime" id="opens-at-time">—</div>
+    </div>
+  </div>
+  <!-- Market Open Banner -->
+  <div class="open-banner" id="open-banner">
+    <div class="open-icon">🟢</div>
+    <div class="open-info">
+      <div class="open-title">Market Open</div>
+      <div class="open-sub" id="open-sub">COMEX Gold futures are live</div>
+    </div>
+    <div class="banner-right">
+      <div class="opens-label">Closes in</div>
+      <div class="closes-in" id="closes-in-time">—</div>
+      <div class="opens-at" id="closes-at-time"></div>
+    </div>
+  </div>
+
+  <div class="hero" id="hero-card">
     <div class="hero-lbl">Gold spot price · 24K</div>
     <div class="hero-price">
-      <div class="hero-rm">RM</div>
+      <div class="hero-rm" id="hero-rm">RM</div>
       <div class="hero-num" id="price-num">—</div>
       <div class="hero-unit">/ g</div>
     </div>
@@ -301,7 +390,7 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
       </div>
       <div class="fg">
         <label>Target (RM / g)</label>
-        <input type="number" id="a-price" placeholder="e.g. 420.00" step="0.01" min="0" />
+        <input type="number" id="a-price" placeholder="e.g. 420.00" step="0.01" min="0" style="-moz-appearance:textfield" />
       </div>
     </div>
     <div class="row2">
@@ -328,7 +417,7 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
 </div>
 </div>
 
-<!-- ════════════════ HISTORY PAGE ════════════════ -->
+<!-- ════════ HISTORY PAGE ════════ -->
 <div id="page-history" class="page">
 <div class="hist-wrap">
   <div class="hist-header">
@@ -340,7 +429,6 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
     </div>
   </div>
 
-  <!-- 24hr intraday section -->
   <div class="sec">Last 24 hours · 30-min intervals</div>
   <div class="big-chart-card">
     <div class="big-chart-hdr">
@@ -357,7 +445,6 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
     <canvas id="intra-chart" style="width:100%;height:180px;display:none"></canvas>
   </div>
 
-  <!-- Daily historical section -->
   <div class="sec">Historical · Daily close</div>
 
   <div class="range-row">
@@ -389,15 +476,171 @@ footer { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 0.5px solid var(-
 </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast">
   <div class="toast-ttl" id="t-ttl"></div>
   <div class="toast-msg" id="t-msg"></div>
 </div>
-</div><!-- end app-shell -->
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
+/* ══════════════════════════════════════════════
+   MARKET HOURS (COMEX Gold Futures)
+   
+   COMEX trades: Sun 18:00 ET → Fri 17:00 ET
+   Daily break:  17:00–18:00 ET every day
+   
+   MYT = UTC+8, ET = UTC-4 (EDT) / UTC-5 (EST)
+   
+   We work in UTC to avoid DST confusion:
+   - Trading days: Sun (0) through Fri (5) in UTC
+   - Open:  each day at 22:00 UTC (= 18:00 ET EDT)
+   - Break: each day at 21:00–22:00 UTC (= 17:00–18:00 ET)
+   
+   Actually simplest: convert "now" to ET, then apply rules.
+══════════════════════════════════════════════ */
+
+/**
+ * Returns ET offset from UTC in minutes (handles DST).
+ * DST 2026: Mar 8 → Nov 1
+ */
+function getETOffset(date) {
+  const d = date || new Date();
+  const year = d.getUTCFullYear();
+  // DST starts 2nd Sunday of March
+  const dstStart = nthSundayOfMonth(year, 2, 2); // month=2 (March), n=2
+  // DST ends 1st Sunday of November
+  const dstEnd   = nthSundayOfMonth(year, 10, 1); // month=10 (Nov), n=1
+  const ts = d.getTime();
+  const inDST = ts >= dstStart.getTime() && ts < dstEnd.getTime();
+  return inDST ? -4 * 60 : -5 * 60; // minutes
+}
+
+function nthSundayOfMonth(year, month, n) {
+  // Returns Date (UTC midnight) of nth Sunday of given month (0-indexed month)
+  const first = new Date(Date.UTC(year, month, 1));
+  const day = first.getUTCDay(); // 0=Sun
+  const offset = (7 - day) % 7;
+  const firstSun = new Date(Date.UTC(year, month, 1 + offset));
+  return new Date(Date.UTC(year, month, 1 + offset + (n - 1) * 7));
+}
+
+function toET(date) {
+  const offsetMin = getETOffset(date);
+  return new Date(date.getTime() + offsetMin * 60 * 1000);
+}
+
+/**
+ * Is the gold futures market open right now?
+ * Rules (in ET):
+ *   - Trades Sun 18:00 → Fri 17:00 continuously
+ *   - Daily maintenance break: 17:00–18:00 ET every day
+ *   - Sat: fully closed
+ */
+function isMarketOpen(date) {
+  const et = toET(date || new Date());
+  const day  = et.getUTCDay();   // 0=Sun,1=Mon,...,6=Sat
+  const hour = et.getUTCHours();
+  const min  = et.getUTCMinutes();
+  const hhmm = hour * 60 + min;
+
+  // Saturday: always closed
+  if (day === 6) return false;
+
+  // Daily break 17:00–18:00 ET
+  if (hhmm >= 17 * 60 && hhmm < 18 * 60) return false;
+
+  // Sunday: only open from 18:00 ET onwards
+  if (day === 0 && hhmm < 18 * 60) return false;
+
+  // Friday: closes at 17:00 ET
+  if (day === 5 && hhmm >= 17 * 60) return false;
+
+  return true;
+}
+
+/**
+ * Returns the next market open time as a Date (UTC).
+ */
+function nextMarketOpen(date) {
+  const now = date || new Date();
+  const et  = toET(now);
+  const day  = et.getUTCDay();
+  const hhmm = et.getUTCHours() * 60 + et.getUTCMinutes();
+  const offsetMin = getETOffset(now); // negative
+
+  function etToUtc(etDate) {
+    return new Date(etDate.getTime() - offsetMin * 60 * 1000);
+  }
+
+  // If in daily break (17:00–18:00), next open is 18:00 today ET
+  if (hhmm >= 17 * 60 && hhmm < 18 * 60) {
+    const openET = new Date(Date.UTC(et.getUTCFullYear(), et.getUTCMonth(), et.getUTCDate(), 18, 0, 0));
+    return etToUtc(openET);
+  }
+
+  // If Friday after 17:00 or Saturday: next open is Sunday 18:00 ET
+  if ((day === 5 && hhmm >= 17 * 60) || day === 6) {
+    const daysUntilSun = day === 5 ? 2 : 1;
+    const sunDate = new Date(et.getTime() + daysUntilSun * 86400 * 1000);
+    const openET  = new Date(Date.UTC(sunDate.getUTCFullYear(), sunDate.getUTCMonth(), sunDate.getUTCDate(), 18, 0, 0));
+    return etToUtc(openET);
+  }
+
+  // If Sunday before 18:00: open is 18:00 today ET
+  if (day === 0 && hhmm < 18 * 60) {
+    const openET = new Date(Date.UTC(et.getUTCFullYear(), et.getUTCMonth(), et.getUTCDate(), 18, 0, 0));
+    return etToUtc(openET);
+  }
+
+  // Fallback: next day 18:00 ET
+  const tomorrow = new Date(et.getTime() + 86400 * 1000);
+  const openET   = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 18, 0, 0));
+  return etToUtc(openET);
+}
+
+function formatDuration(ms) {
+  if (ms <= 0) return '0s';
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}h ${m.toString().padStart(2,'0')}m`;
+  if (m > 0) return `${m}m ${s.toString().padStart(2,'0')}s`;
+  return `${s}s`;
+}
+
+function formatOpenTime(date) {
+  // Show in MYT: "Mon 31 Mar, 06:00 MYT"
+  const weekday = date.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', weekday: 'short' });
+  const dayNum  = date.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', day: 'numeric' });
+  const month   = date.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', month: 'short' });
+  const time    = date.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${weekday} ${dayNum} ${month}, ${time} MYT`;
+}
+
+
+/**
+ * Returns the next market close time as a Date (UTC).
+ * Close = daily break at 17:00 ET, or Friday 17:00 ET.
+ */
+function nextMarketClose(date) {
+  const now = date || new Date();
+  const et  = toET(now);
+  const day  = et.getUTCDay();
+  const hhmm = et.getUTCHours() * 60 + et.getUTCMinutes();
+  const offsetMin = getETOffset(now);
+
+  function etToUtc(etDate) {
+    return new Date(etDate.getTime() - offsetMin * 60 * 1000);
+  }
+
+  // Next close is always 17:00 ET today (the daily break / session end)
+  // unless we're past 17:00 already (but then market would be closed)
+  const closeET = new Date(Date.UTC(et.getUTCFullYear(), et.getUTCMonth(), et.getUTCDate(), 17, 0, 0));
+  return etToUtc(closeET);
+}
+
 /* ══════════════════════════════════════════════
    SHARED STATE
 ══════════════════════════════════════════════ */
@@ -411,6 +654,7 @@ let intraChart  = null;
 let dailyChart  = null;
 let notifOk  = Notification.permission === 'granted';
 let histLoaded = false;
+let marketOpen = true; // will be updated
 
 function loadAlerts() {
   try { return JSON.parse(localStorage.getItem('gt_alerts') || '[]'); } catch(_) { return []; }
@@ -420,12 +664,73 @@ function saveAlerts() {
 }
 
 /* ══════════════════════════════════════════════
+   MARKET STATUS UI
+══════════════════════════════════════════════ */
+function updateMarketStatusUI() {
+  const now    = new Date();
+  const open   = isMarketOpen(now);
+  marketOpen   = open;
+
+  const banner  = document.getElementById('closed-banner');
+  const hero    = document.getElementById('hero-card');
+  const heroRm  = document.getElementById('hero-rm');
+  const priceEl = document.getElementById('price-num');
+
+  const openBanner = document.getElementById('open-banner');
+
+  if (!open) {
+    banner.classList.add('visible');
+    openBanner.classList.remove('visible');
+    hero.classList.add('market-closed');
+    heroRm.classList.add('dimmed');
+    priceEl.classList.add('dimmed');
+
+    // Closed reason
+    const et   = toET(now);
+    const day  = et.getUTCDay();
+    const hhmm = et.getUTCHours() * 60 + et.getUTCMinutes();
+    let reason = 'COMEX Gold futures are not trading';
+    if (day === 6) reason = 'Weekend — markets closed Saturday';
+    else if (day === 5 && hhmm >= 17 * 60) reason = 'Weekend — Friday session ended';
+    else if (day === 0 && hhmm < 18 * 60) reason = 'Weekend — Sunday session not yet open';
+    else if (hhmm >= 17 * 60 && hhmm < 18 * 60) reason = 'Daily maintenance break (17:00–18:00 ET)';
+    document.getElementById('closed-sub').textContent = reason;
+
+    // Next open countdown + datetime
+    const nextOpen = nextMarketOpen(now);
+    const diff     = nextOpen.getTime() - now.getTime();
+    document.getElementById('opens-in-time').textContent = formatDuration(diff);
+    document.getElementById('opens-at-time').textContent = formatOpenTime(nextOpen);
+
+    setStatus('closed', 'CLOSED');
+  } else {
+    banner.classList.remove('visible');
+    openBanner.classList.add('visible');
+    hero.classList.remove('market-closed');
+    heroRm.classList.remove('dimmed');
+    priceEl.classList.remove('dimmed');
+
+    // Next close countdown + datetime
+    const nextClose = nextMarketClose(now);
+    const diffClose = nextClose.getTime() - now.getTime();
+    document.getElementById('closes-in-time').textContent = formatDuration(diffClose);
+    document.getElementById('closes-at-time').textContent = formatOpenTime(nextClose);
+    document.getElementById('open-sub').textContent = 'COMEX Gold futures · live prices';
+
+    setStatus('', 'LIVE');
+  }
+}
+
+/* Tick the "opens in" countdown every second */
+setInterval(updateMarketStatusUI, 1000);
+
+/* ══════════════════════════════════════════════
    TABS
 ══════════════════════════════════════════════ */
-function switchTab(tab) {
+function switchTab(tab, event) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  if (event) event.currentTarget.classList.add('active');
   document.getElementById('page-' + tab).classList.add('active');
   if (tab === 'history' && !histLoaded) {
     histLoaded = true;
@@ -446,6 +751,17 @@ async function fetchFX() {
 }
 
 async function fetchGold() {
+  const closed = !isMarketOpen(new Date());
+
+  // If market is closed and we already have a price, just update UI — no new fetch needed
+  if (closed && price24k !== null) {
+    setStatus('closed', 'CLOSED');
+    updateMarketStatusUI();
+    document.getElementById('upd-time').textContent = 'Last traded price · market closed';
+    return;
+  }
+
+  // Fetch price: always on first load, or whenever market is open
   setStatus('spin', 'LOADING');
   try {
     const r = await fetch('https://api.gold-api.com/price/XAU');
@@ -453,7 +769,13 @@ async function fetchGold() {
     const d = await r.json();
     const myrG = (d.price * fxRate) / TROY;
     applyPrice(myrG);
-    setStatus('', 'LIVE');
+
+    if (closed) {
+      setStatus('closed', 'CLOSED');
+      document.getElementById('upd-time').textContent = 'Last traded price · market closed';
+    } else {
+      setStatus('', 'LIVE');
+    }
   } catch(_) {
     setStatus('err', 'ERROR');
     document.getElementById('price-num').textContent = 'N/A';
@@ -502,7 +824,7 @@ function renderLiveChart() {
 }
 
 /* ══════════════════════════════════════════════
-   CORS PROXY HELPER — tries multiple proxies
+   CORS PROXY HELPER
 ══════════════════════════════════════════════ */
 async function fetchViaProxy(targetUrl) {
   const proxies = [
@@ -515,7 +837,6 @@ async function fetchViaProxy(targetUrl) {
       const r = await fetch(makeProxy(targetUrl), { signal: AbortSignal.timeout(8000) });
       if (!r.ok) continue;
       const text = await r.text();
-      // codetabs returns raw JSON; corsproxy returns raw; thingproxy returns raw
       return JSON.parse(text);
     } catch(_) { continue; }
   }
@@ -523,7 +844,7 @@ async function fetchViaProxy(targetUrl) {
 }
 
 /* ══════════════════════════════════════════════
-   HISTORY — INTRADAY (30-min via Yahoo Finance GC=F)
+   HISTORY — INTRADAY
 ══════════════════════════════════════════════ */
 async function loadIntraday() {
   document.getElementById('intra-loading').style.display = 'flex';
@@ -554,11 +875,8 @@ function renderIntraChart(pts) {
   canvas.style.display = 'block';
   canvas.width = canvas.parentElement.clientWidth - 40;
   canvas.height = 180;
-
   const labels = pts.map(p => p.t.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' }));
   const vals   = pts.map(p => p.v);
-
-  // Range label
   if (pts.length > 1) {
     const first = pts[0].t, last = pts[pts.length-1].t;
     document.getElementById('intra-range').textContent =
@@ -572,11 +890,9 @@ function renderIntraChart(pts) {
     el.textContent = `${sign}${chg.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
     el.className = 'bcs-val ' + (chg >= 0 ? 'up' : 'dn');
   }
-
   const up = vals[vals.length-1] >= vals[0];
   const lineColor = up ? '#52B46B' : '#D95555';
   const fillStart = up ? 'rgba(82,180,107,.15)' : 'rgba(217,85,85,.12)';
-
   if (!intraChart) {
     const ctx = canvas.getContext('2d');
     intraChart = new Chart(ctx, {
@@ -594,7 +910,7 @@ function renderIntraChart(pts) {
 }
 
 /* ══════════════════════════════════════════════
-   HISTORY — DAILY (via Yahoo Finance proxy)
+   HISTORY — DAILY
 ══════════════════════════════════════════════ */
 let currentDays = 90;
 
@@ -605,22 +921,18 @@ async function loadDaily(days, btn) {
   document.getElementById('daily-loading').style.display = 'flex';
   document.getElementById('daily-chart').style.display   = 'none';
   setHistStatus('spin', 'Loading…');
-
   const now    = Math.floor(Date.now() / 1000);
   const period1 = now - days * 86400;
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?period1=${period1}&period2=${now}&interval=1d&events=history`;
-
   try {
     const d      = await fetchViaProxy(url);
     const result = d.chart.result[0];
     const timestamps = result.timestamp;
     const closes     = result.indicators.quote[0].close;
-
     const pts = timestamps.map((ts, i) => ({
       t: new Date(ts * 1000),
       v: closes[i] != null ? parseFloat(((closes[i] * fxRate) / TROY).toFixed(2)) : null
     })).filter(p => p.v !== null);
-
     renderDailyChart(pts, days);
   } catch(_) {
     document.getElementById('daily-loading').innerHTML =
@@ -635,11 +947,8 @@ function renderDailyChart(pts, days) {
   canvas.style.display = 'block';
   canvas.width  = canvas.parentElement.clientWidth - 40;
   canvas.height = 220;
-
   const labels = pts.map(p => p.t.toLocaleDateString('en-MY', { day:'numeric', month:'short', year: days > 365 ? '2-digit' : undefined }));
   const vals   = pts.map(p => p.v);
-
-  // Stats
   const high = Math.max(...vals), low = Math.min(...vals), avg = vals.reduce((a,b) => a+b, 0) / vals.length;
   const chg  = vals[vals.length-1] - vals[0];
   const pct  = (chg / vals[0]) * 100;
@@ -650,21 +959,15 @@ function renderDailyChart(pts, days) {
   const chgEl = document.getElementById('d-chg');
   chgEl.textContent = `${sign}${pct.toFixed(1)}%`;
   chgEl.className   = 'stat-box-val ' + (chg >= 0 ? 'up' : 'dn');
-
-  // Range label
   if (pts.length > 1) {
     document.getElementById('daily-range').textContent =
       pts[0].t.toLocaleDateString('en-MY', { day:'numeric', month:'short', year:'numeric' }) + ' → ' +
       pts[pts.length-1].t.toLocaleDateString('en-MY', { day:'numeric', month:'short', year:'numeric' });
   }
-
   const up = chg >= 0;
   const lineColor  = up ? '#52B46B' : '#D95555';
   const fillStart  = up ? 'rgba(82,180,107,.12)' : 'rgba(217,85,85,.10)';
-
-  // Reduce label density for long ranges
   const maxTicks = days <= 90 ? 8 : days <= 365 ? 10 : 12;
-
   if (!dailyChart) {
     const ctx = canvas.getContext('2d');
     dailyChart = new Chart(ctx, {
@@ -834,9 +1137,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
 updateNotifUI();
 renderAlerts();
+updateMarketStatusUI(); // Show closed state immediately if needed
 fetchAll();
 startCountdown();
-setInterval(fetchGold, 30000);  // every 20s
+setInterval(fetchGold, 30000);
 setInterval(fetchFX, 300000);
 </script>
 </body>
