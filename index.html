@@ -301,6 +301,27 @@ header {
 .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 1rem; gap: 12px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 12px; }
 .spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── App Footer ── */
+.app-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .55rem 1.25rem;
+  border-top: 0.5px solid var(--border);
+  background: var(--bg2);
+  flex-shrink: 0;
+}
+.footer-left {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  color: var(--text3); letter-spacing: .06em;
+}
+.footer-left span { color: var(--text3); }
+.footer-left a { color: var(--text3); text-decoration: none; transition: color .15s; }
+.footer-left a:hover { color: var(--gold); }
+.footer-right {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  color: var(--text3); letter-spacing: .04em;
+}
+.footer-right em { color: #9C9070; font-style: normal; }
 </style>
 </head>
 <body>
@@ -480,6 +501,16 @@ header {
   <div class="toast-ttl" id="t-ttl"></div>
   <div class="toast-msg" id="t-msg"></div>
 </div>
+
+<!-- App Footer -->
+<footer class="app-footer">
+  <div class="footer-left">
+    Powered by <a href="https://gold-api.com" target="_blank">Gold-API</a>
+    <span> · </span><a href="https://finance.yahoo.com" target="_blank">Yahoo Finance</a>
+    <span> · </span><a href="https://open.er-api.com" target="_blank">ExchangeRate-API</a>
+  </div>
+  <div class="footer-right">Created by <em>Toh Hong Aik</em></div>
+</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
